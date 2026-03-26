@@ -5,20 +5,16 @@ from scipy import signal
 class board:
     board: np.ndarray
     generation: int
-    CONV_MASK: np.ndarray
 
     def __init__(self, rows: int = 100, cols: int = 100):
         self.board = np.ndarray(shape=(rows, cols))
         self.generation = 0
-        self.CONV_MASK = np.array([[1, 1, 1], [1, 0, 1], [1, 1, 1]])
 
     def make_step(self) -> None:
         self.generation += 1
-        neighbors = signal.convolve2d(self.board, self.CONV_MASK, mode="same")
-        dies = np.int_(
-            np.logical_and(np.logical_or(neighbors < 2, neighbors > 3), self.board == 1)
-        )
-        borns = np.int_(np.logical_and(self.board == 0, neighbors == 3))
+        neighbors = signal.convolve2d(self.board, [[1, 1, 1], [1, 0, 1], [1, 1, 1]], mode="same")
+        dies = np.logical_and(np.logical_or(neighbors < 2, neighbors > 3), self.board == 1)
+        borns = np.logical_and(self.board == 0, neighbors == 3)
         self.board[np.where(borns)] = 1
         self.board[np.where(dies)] = 0
         print("stop here")
