@@ -6,6 +6,16 @@ from threading import Thread
 
 BOARD_SIZE_ROWS: int = 500
 BOARD_SIZE_COLS: int = 500
+CANVAS_ROWS: int = 40
+CANVAS_COLS: int = 40
+CANVAS_CELL_SIZE_ROWS: int = 10
+CANVAS_CELL_SIZE_COLS: int = 10
+CANVAS_SIZE_ROWS = CANVAS_ROWS * CANVAS_CELL_SIZE_ROWS
+CANVAS_SIZE_COLS = CANVAS_COLS * CANVAS_CELL_SIZE_COLS
+
+window_offset_row: int = 50
+window_offset_cols: int = 50
+
 
 tkr = None
 play_button_obj: tk.Button
@@ -24,7 +34,7 @@ wait_time: float
 def setup_ui():
     global tkr, play_button_obj, play_button_name
     tkr.geometry("640x480")
-    tkr.title("GoL")
+    tkr.title("Game of Life")
     tk.Button(tkr, text="▶", name=play_button_name, command=play_button_command).grid(
         row=0, column=0
     )
@@ -40,20 +50,36 @@ def setup_ui():
     tk.Label(tkr, text="generation : ", name=generation_label_name).grid(
         row=0, column=4
     )
-    tk.Canvas(tkr, height=400, width=600, name=canvas_name).grid(
-        row=1, column=0, columnspan=5
-    )
+    tk.Canvas(
+        tkr,
+        height=CANVAS_SIZE_ROWS,
+        width=CANVAS_SIZE_COLS,
+        name=canvas_name,
+    ).grid(row=1, column=0, columnspan=5)
 
 
 def make_step() -> None:
     global generation, board
     generation += 1
-    tkr.nametowidget(generation_label_name).config(text=f"generation : {generation}")
     neighbors = signal.convolve2d(board, [[1, 1, 1], [1, 0, 1], [1, 1, 1]], mode="same")
     dies = np.logical_and(np.logical_or(neighbors < 2, neighbors > 3), board == 1)
     borns = np.logical_and(board == 0, neighbors == 3)
     board[np.where(borns)] = 1
     board[np.where(dies)] = 0
+
+    tkr.nametowidget(generation_label_name).config(text=f"generation : {generation}")
+    canvas = tk.Canvas(tkr.nametowidget(canvas_name))
+    for r in range(CANVAS_ROWS):
+        for c in range(CANVAS_COLS):
+            canvas.create_rectangle(
+                r * CANVAS_CELL_SIZE_ROWS,
+                c * CANVAS_CELL_SIZE_COLS,
+                (r + 1) * CANVAS_CELL_SIZE_ROWS,
+                (c + 1) * CANVAS_CELL_SIZE_COLS,
+                fill="black"
+                if board[r + window_offset_row, c + window_offset_cols] == 1
+                else "white",
+            )
 
 
 def _thread_cycle() -> None:
