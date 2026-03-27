@@ -17,7 +17,7 @@ window_offset_row: int = 50
 window_offset_cols: int = 50
 
 
-tkr = None
+tkr = tk.Tk()
 play_button_obj: tk.Button
 play_button_name = "play_button"
 pause_button_name = "pause_button"
@@ -50,12 +50,15 @@ def setup_ui():
     tk.Label(tkr, text="generation : ", name=generation_label_name).grid(
         row=0, column=4
     )
-    tk.Canvas(
-        tkr,
-        height=CANVAS_SIZE_ROWS,
-        width=CANVAS_SIZE_COLS,
-        name=canvas_name,
-    ).grid(row=1, column=0, columnspan=5)
+    cv = tk.Canvas(
+        tkr, height=CANVAS_SIZE_ROWS, width=CANVAS_SIZE_COLS, name=canvas_name
+    )
+    cv.bind("<Button-1>", click_canvas)
+    cv.grid(row=1, column=0, columnspan=5)
+
+
+def click_canvas(event):
+    event.__class__ = tk.Event
 
 
 def make_step() -> None:
@@ -68,7 +71,8 @@ def make_step() -> None:
     board[np.where(dies)] = 0
 
     tkr.nametowidget(generation_label_name).config(text=f"generation : {generation}")
-    canvas = tk.Canvas(tkr.nametowidget(canvas_name))
+    canvas = tkr.nametowidget(canvas_name)
+    canvas.__class__ = tk.Canvas
     for r in range(CANVAS_ROWS):
         for c in range(CANVAS_COLS):
             canvas.create_rectangle(
@@ -149,7 +153,6 @@ def lock_button_command(*args):
 
 
 if __name__ == "__main__":
-    tkr = tk.Tk()
     setup_ui()
     setup_board()
     tkr.mainloop()
